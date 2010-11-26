@@ -17,10 +17,12 @@
  * @author     Dominique Feyer <dominique.feyer@reelpeek.net>
  */
 abstract class sfRestClientAbstract
-  {
+{
   
   protected $url = null;
   protected $options = array();
+  
+  protected $serializer;
   
   protected $data = null;
   protected $requestBody = null;
@@ -28,7 +30,8 @@ abstract class sfRestClientAbstract
   
   protected $responseBody = null;
   protected $responseInfo = null;
-  protected $response = array();
+  
+  public $payload = array();
   
   protected $curlHandle = null;
   
@@ -44,7 +47,7 @@ abstract class sfRestClientAbstract
    */
   public function __construct($url, $options = array(), $data = array())
   {
-    if (!in_array  ('curl', get_loaded_extensions()))
+    if (!in_array('curl', get_loaded_extensions()))
     {
       throw new sfInitializationException('Check your PHP configuration this plugin require CURL extension');
     }
@@ -56,13 +59,105 @@ abstract class sfRestClientAbstract
    *
    * @param   string $url               The URL of the remote webservice
    * @param   array  $options           An array of configuration parameters
-   * @param    array  $data              An array containing URL paramter (parameter name as key name)
+   * @param   array  $data              An array containing URL paramter (parameter name as key name)
    */
   public function initialize($url, $options = array(), $data = array())
   {
-    $this->url = $url;
+    $this->setUrl($url);
     
     // Merge default options
+    $this->setOptions($options);
+    
+    $this->data = $data;
+    
+    $this->buildRequestBody();
+  }
+  
+  /**
+   * Service URL setter
+   *
+   * @param   string $url               The URL of the remote webservice
+   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
+   */
+  public function setUrl($url) {
+    $this->url = $url;
+    return $this;
+  }
+  
+  /**
+   * Service URL getter
+   *
+   * @return  string                    Current URL if setted or null
+   */
+  public function getUrl() {
+    return $this->url;
+  }
+  
+  /**
+   * Client HTTP mode setter
+   *
+   * @param   string $verb              HTTP verb
+   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
+   */
+  public function setVerb($verb) {
+    $this->options['verb'] = $verb;
+    return $this;
+  }
+  
+  /**
+   * Client HTTP mode getter
+   *
+   * @return  string                    HTTP verb
+   */
+  public function getVerb() {
+    return $this->options['verb'];
+  }
+  
+  /**
+   * PUT the current request
+   *
+   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
+   */
+  public function put() {
+    return $this->setVerb('PUT')->execute();
+  }
+  
+  /**
+   * GET the current request
+   *
+   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
+   */
+  public function get() {
+    return $this->setVerb('GET')->execute();
+  }
+  
+  /**
+   * POST the current request
+   *
+   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
+   */
+  public function post() {
+    return $this->setVerb('POTS')->execute();
+  }
+  
+  /**
+   * DELETE the current request
+   *
+   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
+   */
+  public function delete() {
+    return $this->setVerb('DELETE')->execute();
+  }
+  
+  /**
+   * Client options setter
+   *
+   * The setter merge the provided array with the default value
+   *
+   * @param   array $options            The configuration paramter
+   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
+   */
+  public function setOptions($options) {
     $this->options = array_merge(array(
       'verb' => 'GET',
       'acceptType' => 'application/xml',
@@ -70,11 +165,40 @@ abstract class sfRestClientAbstract
       'username' => null,
       'password' => null,
       'timeout' => 10
-    ), $this->options);
+    ), $options);
     
-    $this->data = $data;
-    
-    $this->buildRequestBody();
+    return $this;
+  }
+  
+  /**
+   * Client options getter
+   *
+   * @return  array                     The current configuration paramter
+   */
+  public function getOptions() {
+    return $this->options;
+  }
+  
+  /**
+   * Get a serailizer instance from the extension sfDoctrineRestGeneratorPlugin
+   *
+   * @return   sfRessourceSerializer  An instance of the requested serializer
+   */
+  protected function getSerializer()
+  {
+    if (!isset($this->serializer))
+    {
+      try
+      {
+        $this->serializer = sfResourceSerializer::getInstance($this->options['serializer']);
+      }
+      catch (sfException $e)
+      {
+        throw new sfException($e->getMessage());
+      }
+    }
+
+    return $this->serializer;
   }
   
   /**
@@ -97,12 +221,16 @@ abstract class sfRestClientAbstract
     return $this;
   }
   
+  public function buildPostBody() {
+    $this->requestBody = $this->getSerializer()->serialize($this->payload);
+  }
+  
   /**
    * Execute the cURL request
    * 
    * @return void
    */
-  protected function doExecute ()
+  protected function doExecute()
   {
     $this->setCurlOpts($this->curlHandle);
     $this->responseBody = curl_exec($this->curlHandle);
@@ -120,34 +248,36 @@ abstract class sfRestClientAbstract
   {
     $this->curlHandle = curl_init();
     
-    $this->setAuth($ch);
+    $this->setAuth();
     
-    $method = 'execute'.ucwords($this->options['verb']);
+    $method = 'execute'.ucwords(strtolower($this->options['verb']));
     
     try
     {
-        if (method_exists($this, $method))
-        {
-            $this->$method($ch);
-        }
-        else
-        {
-            throw new InvalidArgumentException('Current verb (' . $this->options['verb'] . ') is an invalid or unsupported REST verb.');
-        }
+      if (method_exists($this, $method))
+      {
+        $this->$method();
+      }
+      else
+      {
+        throw new InvalidArgumentException('Current verb (' . $this->options['verb'] . ') is an invalid or unsupported REST verb.');
+      }
     } catch (Exception $e)
     {
-        curl_close($ch);
-        throw $e;
+      curl_close($this->curlHandle);
+      throw $e;
     }
     
     if ($this->responseInfo['http_code'] == 200)
     {
-        $this->parseResponse();
+      $this->unserialize();
     }
     else
     {
-        throw new sfException('Invalid HTTP response code');
+      throw new sfException(sprintf('Invalid HTTP response code: %s: %s', $this->responseInfo['http_code'], $this->url));
     }
+    
+    return $this;
   }
   
   /**
@@ -192,7 +322,7 @@ abstract class sfRestClientAbstract
    */
   protected function executePut()
   {
-    if (!is_string($this->requestBody))
+    if (!is_string($this->requestBody) || $this->requestBody == '')
     {  
         $this->buildPostBody();
     }  
@@ -235,7 +365,7 @@ abstract class sfRestClientAbstract
     
     $this->requestBody = null;
     $this->requestLenght = 0;
-    $this->response = array();
+    $this->payload = array();
     
     $this->responseBody = null;
     $this->responseInfo = null;
