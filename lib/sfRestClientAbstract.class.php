@@ -348,8 +348,8 @@ abstract class sfRestClientAbstract
    * @return void
    */
   protected function executeDelete ()
-  {  
-    curl_setopt($this->curlHandle, CURLOPT_CUSTOMREQUEST, 'DELETE');  
+  {
+    curl_setopt($this->curlHandle, CURLOPT_CUSTOMREQUEST, 'DELETE');
   
     $this->doExecute();
   }  
@@ -390,6 +390,7 @@ abstract class sfRestClientAbstract
     curl_setopt($this->curlHandle, CURLOPT_URL, $this->url);
     curl_setopt($this->curlHandle, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($this->curlHandle, CURLOPT_HTTPHEADER, array ('Accept: ' . $this->options['acceptType']));
+    curl_setopt($this->curlHandle, CURLOPT_SSL_VERIFYPEER, 0);
   }
   
   /**
