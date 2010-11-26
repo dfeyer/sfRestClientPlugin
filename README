@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-sfMedialibTools
-===============
-
-This readme presents briefly how to use this plugin.
-=======
 sfRestClient
 ============
 
@@ -15,4 +9,3 @@ For serialization / unserialization this plugin use the sfDoctrineRestGenerator,
 so you need to have this extension install and loaded on your symfony application.
 
 More document coming ...
->>>>>>> devel
