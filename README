@@ -1,4 +1,18 @@
+<<<<<<< HEAD
 sfMedialibTools
 ===============
 
 This readme presents briefly how to use this plugin.
+=======
+sfRestClient
+============
+
+This plugin provide a clean way for building RESTful client in Symfony.
+
+You need to have cURL extension loaded in your php.ini.
+
+For serialization / unserialization this plugin use the sfDoctrineRestGenerator,
+so you need to have this extension install and loaded on your symfony application.
+
+More document coming ...
+>>>>>>> devel
