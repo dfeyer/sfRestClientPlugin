@@ -16,10 +16,26 @@
  */
 class sfRestClient extends sfRestClientAbstract
 {
-  protected function unserialize() {
+  /**
+   * Unserialize the response to prepare the array $this->response with the proper value
+   *
+   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
+   */
+  protected function unserialize()
+  {
     $this->payload = $this->getSerializer()->unserialize($this->responseBody);
-    
+
     return $this;
+  }
+
+  /**
+   * Unserialize the response to prepare the array $this->response with the proper value
+   *
+   * @return string serialized array ready to be pushed to web service
+   */
+  protected function serialize()
+  {
+    return $this->getSerializer()->serialize($this->payload);
   }
 }
 

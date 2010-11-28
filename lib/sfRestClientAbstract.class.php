@@ -18,7 +18,10 @@
  */
 abstract class sfRestClientAbstract
 {
-  
+  const USERAGENT = 'sfRestClient';
+  protected $allowedProtocols = array('HTTP', 'HTTPS');
+
+  protected $protocol = 'http';
   protected $url = null;
   protected $options = array();
   
@@ -26,13 +29,11 @@ abstract class sfRestClientAbstract
   
   protected $data = null;
   protected $requestBody = null;
-  protected $requestLenght = 0;
+  protected $requestLength = 0;
   
   protected $responseBody = null;
   protected $responseInfo = null;
-  
-  public $payload = array();
-  
+
   protected $curlHandle = null;
   
   /**
@@ -72,6 +73,35 @@ abstract class sfRestClientAbstract
     
     $this->buildRequestBody();
   }
+
+  /**
+   * Set protocol
+   *
+   * @return void
+   */
+  protected function setProtocol($protocol)
+  {
+    if (in_array($protocol, $this->allowedProtocols))
+    {
+      $this->protocol = trim(strtolower($protocol));
+    }
+    else
+    {
+      throw sfInitializationException(sprintf('Protocol "%s" is not supported', $protocol));
+    }
+    
+    return $this;
+  }
+
+  /**
+   * Get protocol
+   *
+   * @return void
+   */
+  protected function getProtocol()
+  {
+    return $this->protocol;
+  }
   
   /**
    * Service URL setter
@@ -89,8 +119,8 @@ abstract class sfRestClientAbstract
    *
    * @return  string                    Current URL if setted or null
    */
-  public function getUrl() {
-    return $this->url;
+  public function getUrl($protocol = false) {
+    return ($protocol) ? $this->protocol . '://' . $this->url : $this->url;
   }
   
   /**
@@ -220,10 +250,8 @@ abstract class sfRestClientAbstract
     
     return $this;
   }
-  
-  public function buildPostBody() {
-    $this->requestBody = $this->getSerializer()->serialize($this->payload);
-  }
+
+  abstract public function buildPostBody();
   
   /**
    * Execute the cURL request
@@ -234,7 +262,7 @@ abstract class sfRestClientAbstract
   {
     $this->setCurlOpts($this->curlHandle);
     $this->responseBody = curl_exec($this->curlHandle);
-    $this->responseInfo  = curl_getinfo($this->curlHandle);
+    $this->responseInfo = curl_getinfo($this->curlHandle);
   
     curl_close($this->curlHandle);
   }  
@@ -274,7 +302,7 @@ abstract class sfRestClientAbstract
     }
     else
     {
-      throw new sfException(sprintf('Invalid HTTP response code: %s: %s', $this->responseInfo['http_code'], $this->url));
+      throw new sfException(sprintf('Invalid HTTP response code: %s: %s', $this->responseInfo['http_code'], $this->getUrl(true)));
     }
     
     return $this;
@@ -283,9 +311,16 @@ abstract class sfRestClientAbstract
   /**
    * Unserialize the response to prepare the array $this->response with the proper value
    *
-   * @return void
+   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
    */
   abstract protected function unserialize();
+
+  /**
+   * Unserialize the response to prepare the array $this->response with the proper value
+   *
+   * @return string serialized array ready to be pushed to web service
+   */
+  abstract protected function serialize();
   
   /**
    * Execute GET REST Request
@@ -365,7 +400,6 @@ abstract class sfRestClientAbstract
     
     $this->requestBody = null;
     $this->requestLenght = 0;
-    $this->payload = array();
     
     $this->responseBody = null;
     $this->responseInfo = null;
@@ -387,10 +421,12 @@ abstract class sfRestClientAbstract
   protected function setCurlOpts()
   {
     curl_setopt($this->curlHandle, CURLOPT_TIMEOUT, $this->options['timeout']);
-    curl_setopt($this->curlHandle, CURLOPT_URL, $this->url);
+    curl_setopt($this->curlHandle, CURLOPT_URL, $this->getUrl(true));
     curl_setopt($this->curlHandle, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($this->curlHandle, CURLOPT_HTTPHEADER, array ('Accept: ' . $this->options['acceptType']));
-    curl_setopt($this->curlHandle, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($this->curlHandle, CURLOPT_HTTPHEADER, array ('Accept: ' . $this->options['acceptType'], 'User-Agent:' . self::USERAGENT));
+    if ($this->protocol === 'https') {
+      curl_setopt($this->curlHandle, CURLOPT_SSL_VERIFYPEER, 0);
+    }
   }
   
   /**
