@@ -33,7 +33,7 @@ abstract class sfRestWebResourceAbstract implements sfRestWebRessourceInterface
 
   public static function getInstance($url)
   {
-    $class = __CLASS__;
+    $class = get_called_class();
     return new $class($url);
   }
 
