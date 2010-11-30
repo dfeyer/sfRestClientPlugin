@@ -21,15 +21,30 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
   protected $handler;
   protected $timeout;
 
-  public static function getImplementation() {
+  public static function getImplementation()
+  {
     return 'curl';
   }
   
-  public function __construct($url) {
+  public function __construct($url)
+  {
     $this->url = $url;
     $this->verb = sfConfig::get('app_sfRestClient_web_resource_verb', 'GET');
     $this->protocol = sfConfig::get('app_sfRestClient_web_resource_protocol', 'HTTP');
     $this->timeout = sfConfig::get('app_sfRestClient_web_resource_timeout', 10);
+  }
+
+  /**
+   * Return HTTP status code of the response
+   *
+   * @return  $this
+   */
+  public function getStatus()
+  {
+    if (isset($this->responseInfo['http_code']))
+    {
+      return $this->responseInfo['http_code'];
+    }
   }
 
   /**
@@ -57,7 +72,8 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
    *
    * @throws InvalidArgumentException If an error occurs with argument data
    */
-  public function buildPostBody() {
+  public function buildPostBody()
+  {
     
   }
 
@@ -102,7 +118,7 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
       throw $e;
     }
 
-    if ($this->responseInfo['http_code'] == 200)
+    if ($this->getStatus() >= 200 && $this->getStatus() < 300)
     {
       // TODO Do something with the response
     }
@@ -191,7 +207,11 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
     curl_setopt($this->handler, CURLOPT_TIMEOUT, $this->timeout);
     curl_setopt($this->handler, CURLOPT_URL, $this->url);
     curl_setopt($this->handler, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($this->handler, CURLOPT_HTTPHEADER, array ('Accept: ' . $this->responseType));
+
+    curl_setopt($this->handler, CURLOPT_HTTPHEADER, array (
+      'Accept: ' . $this->responseType
+    ));
+
     if ($this->protocol === 'HTTPS') {
       curl_setopt($this->handler, CURLOPT_SSL_VERIFYPEER, 0);
     }
