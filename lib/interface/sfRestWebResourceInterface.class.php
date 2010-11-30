@@ -15,6 +15,7 @@
  * @author     Dominique Feyer <dominique.feyer@reelpeek.net>
  */
 interface sfRestWebRessourceInterface {
+  public static function getImplementation();
   public function accept($type);
   public function queryParams($params);
   public function get();

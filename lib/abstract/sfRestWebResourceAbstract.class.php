@@ -27,7 +27,6 @@ abstract class sfRestWebResourceAbstract implements sfRestWebRessourceInterface
 
   protected $queryParams;
   
-  abstract public static function getImplementation();
   abstract protected function execute();
 
   public static function getInstance($url)
@@ -37,10 +36,17 @@ abstract class sfRestWebResourceAbstract implements sfRestWebRessourceInterface
   }
 
   /**
+   * Return HTTP status code of the response
+   *
+   * @return  $this
+   */
+  abstract public function getStatus();
+
+  /**
    * Client HTTP mode setter
    *
    * @param   string $verb              HTTP verb
-   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
+   * @return  $this
    */
   public function setVerb($verb) {
     $this->verb = $verb;
@@ -62,8 +68,15 @@ abstract class sfRestWebResourceAbstract implements sfRestWebRessourceInterface
    * @param   string $accept        Response MIME type
    * @return  $this
    */
-  public function accept($type) {
-    $this->responseType = $type;
+  public function accept($type)
+  {
+    if (!is_array($type))
+    {
+      $this->responseType = $type;
+    } else {
+      $type = array_map('trim', $type);
+      $this->responseType = implode($type, ', ');
+    }
     return $this;
   }
 
