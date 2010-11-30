@@ -41,7 +41,7 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
    */
   public function getStatus()
   {
-    return $this->response->getStatus();
+    return $this->response->getMetadata()->getStatus();
   }
 
   /**
@@ -84,8 +84,8 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
     $this->setCurlOpts($this->handler);
     
     $this->response = new sfRestClientResponse();
-    $this->response->setBody(curl_exec($this->handler))
-        ->setInfo(curl_getinfo($this->handler));
+    $this->response->setResponse(curl_exec($this->handler))
+        ->setMetaData(curl_getinfo($this->handler));
 
     curl_close($this->handler);
   }

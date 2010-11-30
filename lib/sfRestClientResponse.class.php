@@ -16,41 +16,29 @@
  */
 class sfRestClientResponse {
 
-  protected $body;
-  protected $info;
+  protected $response;
+  protected $metadata;
 
-  public function setBody($body)
+  public function setResponse($response)
   {
-    $this->body = $body;
+    $this->response = $response;
     return $this;
   }
 
-  public function getBody()
+  public function getResponse()
   {
-    return $this->body;
+    return $this->response;
   }
 
-  public function setInfo($info)
+  public function setMetaData($metadata)
   {
-    $this->info = $info;
+    $this->metadata = sfRestMetadata::getInstance($metadata);
     return $this;
   }
 
-  public function getInfo()
+  public function getMetaData()
   {
-    return $this->info;
+    return $this->metadata;
   }
-
-  /**
-   * Return HTTP status code of the response
-   *
-   * @return  $this
-   */
-  public function getStatus()
-  {
-    if (isset($this->info['http_code']))
-    {
-      return $this->info['http_code'];
-    }
-  }
+  
 }
