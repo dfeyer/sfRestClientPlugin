@@ -41,10 +41,7 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
    */
   public function getStatus()
   {
-    if (isset($this->responseInfo['http_code']))
-    {
-      return $this->responseInfo['http_code'];
-    }
+    return $this->response->getStatus();
   }
 
   /**
@@ -85,8 +82,10 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
   protected function doExecute()
   {
     $this->setCurlOpts($this->handler);
-    $this->responseBody = curl_exec($this->handler);
-    $this->responseInfo = curl_getinfo($this->handler);
+    
+    $this->response = new sfRestClientResponse();
+    $this->response->setBody(curl_exec($this->handler))
+        ->setInfo(curl_getinfo($this->handler));
 
     curl_close($this->handler);
   }
@@ -94,7 +93,8 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
   /**
    * Execute the REST request and call the parser if the response is OK
    *
-   * @return void
+   * @throw  sfException
+   * @return sfRestClientResponse
    */
   public function execute()
   {
@@ -120,14 +120,13 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
 
     if ($this->getStatus() >= 200 && $this->getStatus() < 300)
     {
-      // TODO Do something with the response
+      return $this->response;
     }
     else
     {
-      throw new sfException(sprintf('Invalid HTTP response code: %s: %s', $this->responseInfo['http_code'], $this->url));
+      throw new sfClientRestException(sprintf('Invalid HTTP response code: %s: %s', $this->getStatus(), $this->url));
     }
 
-    return $this;
   }
 
   /**

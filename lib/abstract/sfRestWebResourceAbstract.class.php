@@ -18,9 +18,11 @@ abstract class sfRestWebResourceAbstract implements sfRestWebRessourceInterface
 {
   protected $verb;
 
-  protected $responseBody;
+  /**
+   * @var sfRestClientResponse $response
+   */
+  protected $response;
   protected $responseType;
-  protected $responseInfo;
 
   protected $requestBody;
   protected $requestLength;
