@@ -16,17 +16,7 @@
 class sfRestWebResourceCurl extends sfRestWebResourceAbstract
 {
   protected $url;
-  protected $verb;
   protected $protocol;
-
-  protected $responseBody;
-  protected $responseType;
-  protected $responseInfo;
-
-  protected $requestBody;
-  protected $requestLength;
-
-  protected $queryParams;
 
   protected $handler;
   protected $timeout;
@@ -40,82 +30,6 @@ class sfRestWebResourceCurl extends sfRestWebResourceAbstract
     $this->verb = sfConfig::get('app_sfRestClient_web_resource_verb', 'GET');
     $this->protocol = sfConfig::get('app_sfRestClient_web_resource_protocol', 'HTTP');
     $this->timeout = sfConfig::get('app_sfRestClient_web_resource_timeout', 10);
-  }
-  
-  /**
-   * Client HTTP mode setter
-   *
-   * @param   string $verb              HTTP verb
-   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
-   */
-  public function setVerb($verb) {
-    $this->verb = $verb;
-    return $this;
-  }
-  
-  /**
-   * Client HTTP mode getter
-   *
-   * @return  string                    HTTP verb
-   */
-  public function getVerb() {
-    return $this->verb;
-  }
-
-  /**
-   * Accept only reponse with this type
-   *
-   * @param   string $accept        Response MIME type
-   * @return  $this
-   */
-  public function accept($type) {
-    $this->responseType = $type;
-  }
-
-  /**
-   * Add query parameters
-   *
-   * @param   string $accept        Response MIME type
-   * @return  $this
-   */
-  public function queryParams($params) {
-    $this->queryParams = $params;
-  }
-  
-  /**
-   * PUT the current request
-   *
-   * @return  $this
-   */
-  public function put() {
-    return $this->setVerb('PUT')->execute();
-  }
-  
-  /**
-   * GET the current request
-   *
-   * @return  $this
-   */
-  public function get() {
-    return $this->setVerb('GET')->execute();
-  }
-  
-  /**
-   * POST the current request
-   *
-   * @return  $this
-   */
-  public function post() {
-    return $this->setVerb('POTS')->execute();
-  }
-  
-  /**
-   * DELETE the current request
-   *
-   * @return  $this
-   */
-  public function delete() {
-    return $this->setVerb('DELETE')->execute();
   }
 
   /**

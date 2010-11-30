@@ -16,11 +16,100 @@
  */
 abstract class sfRestWebResourceAbstract implements sfRestWebRessourceInterface
 {
+  protected $verb;
+
+  protected $responseBody;
+  protected $responseType;
+  protected $responseInfo;
+
+  protected $requestBody;
+  protected $requestLength;
+
+  protected $queryParams;
+  
   abstract public static function getImplementation();
+  abstract protected function execute();
 
   public static function getInstance($url)
   {
     $class = __CLASS__;
     return new $class($url);
+  }
+
+  /**
+   * Client HTTP mode setter
+   *
+   * @param   string $verb              HTTP verb
+   * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
+   */
+  public function setVerb($verb) {
+    $this->verb = $verb;
+    return $this;
+  }
+
+  /**
+   * Client HTTP mode getter
+   *
+   * @return  string                    HTTP verb
+   */
+  public function getVerb() {
+    return $this->verb;
+  }
+
+  /**
+   * Accept only reponse with this type
+   *
+   * @param   string $accept        Response MIME type
+   * @return  $this
+   */
+  public function accept($type) {
+    $this->responseType = $type;
+    return $this;
+  }
+
+  /**
+   * Add query parameters
+   *
+   * @param   string $accept        Response MIME type
+   * @return  $this
+   */
+  public function queryParams($params) {
+    $this->queryParams = $params;
+  }
+
+  /**
+   * PUT the current request
+   *
+   * @return  $this
+   */
+  public function put() {
+    return $this->setVerb('PUT')->execute();
+  }
+
+  /**
+   * GET the current request
+   *
+   * @return  $this
+   */
+  public function get() {
+    return $this->setVerb('GET')->execute();
+  }
+
+  /**
+   * POST the current request
+   *
+   * @return  $this
+   */
+  public function post() {
+    return $this->setVerb('POTS')->execute();
+  }
+
+  /**
+   * DELETE the current request
+   *
+   * @return  $this
+   */
+  public function delete() {
+    return $this->setVerb('DELETE')->execute();
   }
 }
