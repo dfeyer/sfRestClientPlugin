@@ -137,7 +137,7 @@ abstract class sfRestClientAbstract
    * @return  sfRestClientAbstract      Current intance of sfRestClientAbstract
    */
   public function post() {
-    return $this->setVerb('POTS')->execute();
+    return $this->setVerb('POST')->execute();
   }
   
   /**
