@@ -6,7 +6,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
- 
+
 /**
  * sfRestClientAbstract is an abstract class for building RESTfull client
  *
@@ -18,30 +18,30 @@
  */
 abstract class sfRestClientAbstract
 {
-  
+
   protected $url = null;
   protected $options = array();
-  
+
   protected $serializer;
-  
+
   protected $data = null;
   protected $requestBody = null;
   protected $requestLenght = 0;
-  
+
   protected $responseBody = null;
   protected $responseInfo = null;
-  
+
   public $payload = array();
-  
+
   protected $curlHandle = null;
-  
+
   /**
    * Class constructor.
    *
    * @param   string $url               The URL of the remote webservice
    * @param   array  $options           An array of configuration parameters
    * @param    array  $data              An array containing URL paramter (parameter name as key name)
-   * 
+   *
    * @throws sfInitializationException  If CURL extension is not loaded
    * @see initialize()
    */
@@ -53,7 +53,7 @@ abstract class sfRestClientAbstract
     }
     $this->initialize($url, $options, $data);
   }
-  
+
   /**
    * Initializes this medialibAutoLogin instance.
    *
@@ -64,15 +64,15 @@ abstract class sfRestClientAbstract
   public function initialize($url, $options = array(), $data = array())
   {
     $this->setUrl($url);
-    
+
     // Merge default options
     $this->setOptions($options);
-    
+
     $this->data = $data;
-    
+
     $this->buildRequestBody();
   }
-  
+
   /**
    * Service URL setter
    *
@@ -83,7 +83,7 @@ abstract class sfRestClientAbstract
     $this->url = $url;
     return $this;
   }
-  
+
   /**
    * Service URL getter
    *
@@ -92,7 +92,7 @@ abstract class sfRestClientAbstract
   public function getUrl() {
     return $this->url;
   }
-  
+
   /**
    * Client HTTP mode setter
    *
@@ -103,7 +103,7 @@ abstract class sfRestClientAbstract
     $this->options['verb'] = $verb;
     return $this;
   }
-  
+
   /**
    * Client HTTP mode getter
    *
@@ -112,7 +112,7 @@ abstract class sfRestClientAbstract
   public function getVerb() {
     return $this->options['verb'];
   }
-  
+
   /**
    * PUT the current request
    *
@@ -121,7 +121,7 @@ abstract class sfRestClientAbstract
   public function put() {
     return $this->setVerb('PUT')->execute();
   }
-  
+
   /**
    * GET the current request
    *
@@ -130,7 +130,7 @@ abstract class sfRestClientAbstract
   public function get() {
     return $this->setVerb('GET')->execute();
   }
-  
+
   /**
    * POST the current request
    *
@@ -139,7 +139,7 @@ abstract class sfRestClientAbstract
   public function post() {
     return $this->setVerb('POST')->execute();
   }
-  
+
   /**
    * DELETE the current request
    *
@@ -148,7 +148,7 @@ abstract class sfRestClientAbstract
   public function delete() {
     return $this->setVerb('DELETE')->execute();
   }
-  
+
   /**
    * Client options setter
    *
@@ -166,10 +166,10 @@ abstract class sfRestClientAbstract
       'password' => null,
       'timeout' => 10
     ), $options);
-    
+
     return $this;
   }
-  
+
   /**
    * Client options getter
    *
@@ -178,7 +178,7 @@ abstract class sfRestClientAbstract
   public function getOptions() {
     return $this->options;
   }
-  
+
   /**
    * Get a serailizer instance from the extension sfDoctrineRestGeneratorPlugin
    *
@@ -200,7 +200,7 @@ abstract class sfRestClientAbstract
 
     return $this->serializer;
   }
-  
+
   /**
    * Build resquest body, before calling the remote web service
    *
@@ -209,25 +209,25 @@ abstract class sfRestClientAbstract
   public function buildRequestBody()
   {
     $data = ($this->data !== null) ? $this->data : $this->requestBody;
-    
+
     if (!is_array($data))
-    {  
+    {
         throw new InvalidArgumentException('Invalid data input for postBody. Array expected');
-    }  
-  
-    $data = http_build_query($data, '', '&');  
+    }
+
+    $data = http_build_query($data, '', '&');
     $this->requestBody = $data;
-    
+
     return $this;
   }
-  
+
   public function buildPostBody() {
     $this->requestBody = $this->getSerializer()->serialize($this->payload);
   }
-  
+
   /**
    * Execute the cURL request
-   * 
+   *
    * @return void
    */
   protected function doExecute()
@@ -235,23 +235,23 @@ abstract class sfRestClientAbstract
     $this->setCurlOpts($this->curlHandle);
     $this->responseBody = curl_exec($this->curlHandle);
     $this->responseInfo  = curl_getinfo($this->curlHandle);
-  
+
     curl_close($this->curlHandle);
-  }  
-  
+  }
+
   /**
    * Execute the REST request and call the parser if the response is OK
-   * 
+   *
    * @return void
    */
   public function execute()
   {
     $this->curlHandle = curl_init();
-    
+
     $this->setAuth();
-    
+
     $method = 'execute'.ucwords(strtolower($this->options['verb']));
-    
+
     try
     {
       if (method_exists($this, $method))
@@ -267,121 +267,123 @@ abstract class sfRestClientAbstract
       curl_close($this->curlHandle);
       throw $e;
     }
-    
+
     if ($this->responseInfo['http_code'] == 200)
     {
       $this->unserialize();
     }
     else
     {
-      throw new sfException(sprintf('Invalid HTTP response code: %s: %s', $this->responseInfo['http_code'], $this->url));
+        $this->unserialize();
+        throw new sfException(sprintf("Invalid HTTP response code: %s: %s\nTrace : %s\n",
+            $this->responseInfo['http_code'], $this->url, $this->payload[0]['message']));
     }
-    
+
     return $this;
   }
-  
+
   /**
    * Unserialize the response to prepare the array $this->response with the proper value
    *
    * @return void
    */
   abstract protected function unserialize();
-  
+
   /**
    * Execute GET REST Request
-   *  
+   *
    * @return void
    */
   protected function executeGet()
   {
     $this->doExecute();
   }
-  
+
   /**
    * Execute POST REST Request
-   *  
+   *
    * @return void
    */
   protected function executePost()
-  {  
-    if (!is_string($this->requestBody))
-    {  
+  {
+    if (!$this->requestBody)
+    {
         $this->buildPostBody();
-    }  
-  
-    curl_setopt($this->curlHandle, CURLOPT_POSTFIELDS, $this->requestBody);  
-    curl_setopt($this->curlHandle, CURLOPT_POST, 1);  
-  
+    }
+
+    curl_setopt($this->curlHandle, CURLOPT_POSTFIELDS, $this->requestBody);
+    curl_setopt($this->curlHandle, CURLOPT_POST, 1);
+
     $this->doExecute();
   }
-  
+
   /**
    * Execute PUT REST Request
-   *  
+   *
    * @return void
    */
   protected function executePut()
   {
     if (!is_string($this->requestBody) || $this->requestBody == '')
-    {  
+    {
         $this->buildPostBody();
-    }  
-  
+    }
+
     $this->requestLength = strlen($this->requestBody);
-  
+
     $fh = fopen('php://memory', 'rw');
     fwrite($fh, $this->requestBody);
     rewind($fh);
-  
+
     curl_setopt($this->curlHandle, CURLOPT_INFILE, $fh);
     curl_setopt($this->curlHandle, CURLOPT_INFILESIZE, $this->requestLength);
     curl_setopt($this->curlHandle, CURLOPT_PUT, true);
-  
+
     $this->doExecute();
-  
+
     fclose($fh);
   }
-  
+
   /**
    * Execute DELETE REST Request
-   *  
+   *
    * @return void
    */
   protected function executeDelete ()
   {
     curl_setopt($this->curlHandle, CURLOPT_CUSTOMREQUEST, 'DELETE');
-  
+
     $this->doExecute();
-  }  
-  
+  }
+
   /**
    * Flush the current class variable
-   *  
+   *
    * @return $this
    */
   public function flush()
   {
     $this->data = null;
-    
+
     $this->requestBody = null;
     $this->requestLenght = 0;
     $this->payload = array();
-    
+
     $this->responseBody = null;
     $this->responseInfo = null;
-    
+
     curl_close($this->curlHandle);
-    
+
     $this->curlHandle = null;
-    
+
     $this->sfGuardUser = false;
-    
+
     return $this;
   }
-  
+
   /**
    * Set default Curl configuration
-   *  
+   *
    * @return void
    */
   protected function setCurlOpts()
@@ -392,10 +394,10 @@ abstract class sfRestClientAbstract
     curl_setopt($this->curlHandle, CURLOPT_HTTPHEADER, array ('Accept: ' . $this->options['acceptType']));
     curl_setopt($this->curlHandle, CURLOPT_SSL_VERIFYPEER, 0);
   }
-  
+
   /**
    * Set curl authentification (support only HTTP DIGEST)
-   *  
+   *
    * @return void
    */
   protected function setAuth()
