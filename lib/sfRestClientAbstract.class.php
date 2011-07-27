@@ -82,7 +82,7 @@ abstract class sfRestClientAbstract
    */
   public function setData($data)
   {
-      $this->data = $data;
+     $this->data = $data;
   }
 
   /**
@@ -236,9 +236,8 @@ abstract class sfRestClientAbstract
     if (!is_array($data))
     {
         throw new InvalidArgumentException('Invalid data input for postBody. Array expected');
-    }
-
-    $data = http_build_query($data, '', '&');
+    }    
+    $data = http_build_query($data, '', '&');    
     $this->requestBody = $data;
 
     return $this;
@@ -319,7 +318,9 @@ abstract class sfRestClientAbstract
    */
   protected function executeGet()
   {
-    $this->doExecute();
+     if ($this->requestBody != null)
+	$this->url .= '?'.$this->requestBody;
+     $this->doExecute();
   }
 
   /**
@@ -351,7 +352,6 @@ abstract class sfRestClientAbstract
     {
         $this->buildPostBody();
     }
-
     $this->requestLength = strlen($this->requestBody);
 
     $fh = fopen('php://memory', 'rw');
