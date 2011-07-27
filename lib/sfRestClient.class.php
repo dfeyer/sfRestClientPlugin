@@ -6,7 +6,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
- 
+
 /**
  * sfRestClient is a generic RESTful client
  *
@@ -18,9 +18,7 @@ class sfRestClient extends sfRestClientAbstract
 {
   protected function unserialize() {
     $this->payload = $this->getSerializer()->unserialize($this->responseBody);
-    
+
     return $this;
   }
 }
-
-?>

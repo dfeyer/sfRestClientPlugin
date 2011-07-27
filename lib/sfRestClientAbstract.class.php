@@ -408,5 +408,3 @@ abstract class sfRestClientAbstract
     }
   }
 }
-
-?>
