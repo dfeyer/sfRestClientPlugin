@@ -74,6 +74,29 @@ abstract class sfRestClientAbstract
   }
 
   /**
+   * Data setter
+   *
+   * @param mixed $data
+   * @access public
+   * @return void
+   */
+  public function setData($data)
+  {
+      $this->data = $data;
+  }
+
+  /**
+   * Data getter
+   *
+   * @access public
+   * @return array
+   */
+  public function getData()
+  {
+      return $this->data;
+  }
+
+  /**
    * Service URL setter
    *
    * @param   string $url               The URL of the remote webservice
