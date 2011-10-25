@@ -290,15 +290,20 @@ abstract class sfRestClientAbstract
       throw $e;
     }
 
-    if ($this->responseInfo['http_code'] == 200)
+    if ($this->responseInfo['http_code'] >= 200 && $this->responseInfo['http_code'] < 300)
     {
       $this->unserialize();
     }
     else
     {
         $this->unserialize();
+	$error = "Unknow error";
+	if (isset($this->payload['error']))
+	{
+	   $error = join("\n", (array)$this->payload['error']);
+	}
         throw new sfException(sprintf("Invalid HTTP response code: %s: %s\nTrace : %s\n",
-            $this->responseInfo['http_code'], $this->url, $this->payload[0]['message']));
+            $this->responseInfo['http_code'], $this->url, $error));
     }
 
     return $this;
